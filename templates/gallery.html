@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>图片展示</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    <div id="imageGroupIndex">当前图片组序号: 0</div>
+    <div>
+        {% for image in images %}
+            <img src="{{ url_for('send_image', filename=image) }}" onclick="sendImageName('{{ image }}', this)" alt="{{ image }}" style="width: 640px; height: 360px;">
+        {% endfor %}
+    </div>
+    <script>
+        function sendImageName(imageName, imageElement) {
+            // 发送 POST 请求并处理响应
+            $.post("/next_image", { image_name: imageName }, function(data) {
+                if (data.images && data.images.length == 6) {
+                    // 替换所有图片
+                    $('img').each(function(index) {
+                        if (data.images[index]) { // 确保有足够的新图片数据
+                            $(this).attr("src", data.images[index]);
+                            $(this).attr("onclick", "sendImageName('" + extractImageName(data.images[index]) + "', this)");
+                        }
+                    });
+                    updateImageGroupIndex(data.image_group_index);
+                }
+                else {
+                    alert("没有更多图片了！");
+                }
+            });
+        }
+        
+        function updateImageGroupIndex(index) {
+            $('#imageGroupIndex').text('当前图片组序号: ' + index);
+        }
+        
+        function extractImageName(imagePath) {
+            return imagePath.split('/').pop(); // 从路径中提取文件名
+        }
+        </script>
+        
+</body>
+</html>
